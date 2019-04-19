@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="main.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.8/d3.min.js"></script>
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3-geo-projection.v1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.20/topojson.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    
+    <title>d3 final project</title>
+</head>
+
+<body class="spacing">
+    <header>
+        <div><h1 class="heading" >D3 FINAL PROJECT</h1></div>
+        <div class="topnav">
+            <a class="active" href="hiren_finalproject.html">Bar</a>
+            <a href="worldmap.html">worldmap</a>
+            <a href="piechat.html">Axis</a>
+             <a href="donut.html">donut</a>
+        </div>
+    </header>
+
+    <div id="viz" class="contrainer">
+        <div class="row">
+            <div class="col-sm-8">
+                <h1 class="heading2"> University of bits pilani</h1>
+                <svg style="width: 900px;height: 900px;"></svg></div>
+             <div class="col-sm-4">
+                 <h1 class="heading2">Filters</h1><br>
+                <button class="locationButton btn btn-info" onClick="wclocations()">Total univercities </button><br><br>
+                <button class="winnerButton btn btn-info" onClick="winners()">Success</button><br><br>
+                 <button class="runnerUpButton btn btn-info" onClick="runners()">unsuccessfull</button>
+        </div>
+    </div>
+    </div>
+    <script>
+        var worldcupwinners = [];
+        var worldcuplocations = ["germany"];
+        var worldcuprunners = [];
+
+
+        var PromiseWrapper = (xhr, d) => new Promise(resolve => xhr(d, (p) => resolve(p)));
+
+        Promise
+            .all([
+                PromiseWrapper(d3.json, "data/blood.geojson"),
+                PromiseWrapper(d3.csv, "data/blood.csv")
+            ])
+            .then(resolve => {
+                createMap(resolve[0], resolve[1]);
+            });
+
+
+        function createMap(countries, worldCup) {
+            worldCup.forEach(data => {
+                worldcupwinners.push(data.winner);
+                worldcuplocations.push(data.location);
+                worldcuprunners.push(data.runnerup);
+            });
+
+            var aprojection = d3.geoMercator()
+                .scale(130)
+                .translate([250, 250])
+                .center([20, 0]);
+
+
+            var geoPath = d3.geoPath().projection(aprojection);
+
+            d3.select("svg")
+                .selectAll("path")
+                .data(countries.features)
+                .enter()
+                .append("path")
+                .attr("d", geoPath)
+                .attr("class", "country")
+                .style("fill", "#669999");
+
+        }
+
+        function setToBlack() {
+            d3.select("svg")
+                .selectAll("path.country")
+                .style("fill", "#669999");
+        }
+
+        function winners() {
+            setToBlack();
+            d3.select("svg")
+                .selectAll("path.country")
+                .filter(function(p, q) {
+                    return worldcupwinners.indexOf(p.properties.name) > -1
+                })
+                .style("fill", "skyBlue");
+        }
+
+
+        function runners() {
+            setToBlack();
+            d3.select("svg")
+                .selectAll("path.country")
+                .filter(function(p, q) {
+                    return worldcuprunners.indexOf(p.properties.name) > -1
+                })
+                .style("fill", "grey");
+        }
+
+
+
+        function wclocations() {
+            setToBlack();
+            d3.select("svg")
+                .selectAll("path.country")
+                .filter(function(p, q) {
+                    return worldcuplocations.indexOf(p.properties.name) > -1
+                })
+                .style("fill", "#4000ff");
+        }
+
+    </script>
+</body>
+
+</html>
